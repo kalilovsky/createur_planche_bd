@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #dragElement {
+            background-color: blueviolet;
+            width: 400px;
+            height: 400px;
+        }
+
+        .dragElement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* background-color: red; */
+            width: 150px;
+            height: 100px;
+            resize: both;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url("./bulle-ronde.png");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+
+        }
+
+        .dragElement #text {
+            padding: 17%;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* .dragElement img {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        } */
+        .dragElement p {
+            text-align: center;
+            position: absolute;
+            max-height: 70%;
+            max-width: 70%;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: auto;
+            font-size: 16px;
+        }
+
+        #origin {
+            height: 100%;
+            width: 75%;
+            background-image: url(Vignette-test-fonds.png);
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        }
+
+        #leftBar {
+            width: 25%;
+            height: 100%;
+            border-left: 1px solid black;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #deleteDiv {
+            border: 1px solid black;
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="origin">
+        <!-- <div id="dragElement" draggable="true"></div> -->
+        <!-- <div class="dragElement" draggable="true" style="display: none;"></div> -->
+    </div>
+    <div id="leftBar">
+        <button id="createElem">Créer une bulle</button>
+        <div id="deleteDiv">
+            Glisser ici pour supprimer la bulle
+        </div>
+        <div id="textContainer">
+            <textarea name="" id="textBulle" cols="30" rows="10" placeholder="écrivez ici le text du dialogue"></textarea>
+        </div>
+        <div id="textDecoration">
+            <input type="color" id="colorChange">
+        </div>
+    </div>
+    <script>
+        // let myDragElem = document.getElementById("dragElement");
+        let originElem = document.getElementById("origin");
+        let createBtn = document.getElementById("createElem")
+        let textBulle = document.getElementById("textBulle")
+        let idBulle = 0
+        let focusedDiv
+
+        createBtn.addEventListener("click", () => {
+            let newBulle = document.createElement("div");
+            let p = document.createElement("p")
+            p.style.fontSize = "16px";
+            newBulle.classList.add("dragElement");
+            newBulle.id = idBulle;
+            idBulle++;
+            newBulle.setAttribute('draggable', true)
+            newBulle.appendChild(p);
+            originElem.appendChild(newBulle);
+            // newBulle.innerHTML=Math.random();
+            focusedDiv = newBulle
+            new ResizeObserver(() => resizeElem(newBulle)).observe(newBulle);
+            newBulle.addEventListener("resize", resizeElem);
+            newBulle.addEventListener("dragstart", dragStart);
+            newBulle.addEventListener("click", (e) => {
+                textBulle.value = newBulle.childNodes[0].textContent;
+                focusedDiv = newBulle;
+            })
+        })
+        function dragStart(ev) {
+            let elemStyle = window.getComputedStyle(ev.target, null);
+            ev.dataTransfer.setData("text", ev.target.id + ',' + (parseInt(elemStyle.getPropertyValue("left"), 10) - ev.clientX) + ',' + (parseInt(elemStyle.getPropertyValue("top"), 10) - ev.clientY));
+            ev.dataTransfer.effectAllowed = "move";
+        }
+
+        originElem.addEventListener("drop", (e) => {
+            e.preventDefault();
+            let data = e.dataTransfer.getData("text").split(',');
+            let draggedElem = document.getElementById(data[0])
+            draggedElem.style.left = (e.clientX + parseInt(data[1], 10)) + 'px';
+            draggedElem.style.top = (e.clientY + parseInt(data[2], 10)) + 'px';
+
+            //ev.target.appendChild(document.getElementById(data));
+        })
+        originElem.addEventListener("dragover", (ev) => {
+            ev.preventDefault();
+        })
+        document.getElementById("deleteDiv").addEventListener("dragover", (e) => {
+            e.preventDefault();
+        })
+        document.getElementById("deleteDiv").addEventListener("drop", (e) => {
+            e.preventDefault();
+            let data = e.dataTransfer.getData("text").split(',');
+            document.getElementById(data[0]).remove();
+        })
+        textBulle.addEventListener("keyup", (e) => {
+            if (focusedDiv!=undefined){
+                focusedDiv.childNodes[0].textContent = textBulle.value;
+                resizeElem(focusedDiv);
+            }else{
+                alert("veuillez créer une bulle svp")
+            }
+        })
+
+        document.getElementById("colorChange").addEventListener("input", (e) => {
+            focusedDiv.childNodes[0].style.color = e.target.value;
+        })
+        function resizeElem(myDiv) {
+            for (let i = 1; i < 100; i++) {
+                myDiv.childNodes[0].style.fontSize = i + "px"
+                if ((myDiv.childNodes[0].scrollHeight > myDiv.childNodes[0].clientHeight) || (myDiv.childNodes[0].scrollWidth > myDiv.childNodes[0].clientWidth)) {
+                    myDiv.childNodes[0].style.fontSize = (i - 10) + "px"
+                    console.log((myDiv.childNodes[0].clientHeight*myDiv.childNodes[0].clientWidth));
+                    break
+                }
+            }
+        }
+
+    </script>
+</body>
+
+</html>
