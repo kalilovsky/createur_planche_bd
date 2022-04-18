@@ -121,8 +121,6 @@
         </div>
     </div>
     <script src="node_modules/html2canvas/dist/html2canvas.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
-
     <script>
         // let myDragElem = document.getElementById("dragElement");
         let originElem = document.getElementById("origin");
@@ -133,12 +131,11 @@
         let focusedDiv
         document.getElementById("createImg").addEventListener("click",()=>{
             html2canvas(originElem).then((canvas)=>{
-                let image = canvas.toBlob((blob)=>{
-                    window.saveAs(blob, 'my_image.png');
-                })
-                // canvas.setAttribute('draggable', false)
-                // canvas.style.zIndex=1;
-                // document.getElementById("capture").appendChild(canvas);
+                const a = document.createElement("a");
+                a.download = "myImage.png";
+                a.href = canvas.toDataURL();
+                a.click();
+                a.delete;
             })
         })
         document.getElementById("fileChange").addEventListener("change", (e) => {
